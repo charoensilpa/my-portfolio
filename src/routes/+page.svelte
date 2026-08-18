@@ -1,5 +1,8 @@
 <script>
-  import { fade } from 'svelte/transition';
+  import { fade } from 'svelte/transition'
+  
+  let { data } = $props()
+  const { projects } = data
 </script>
 
 <div class="container">
@@ -9,23 +12,15 @@
   </header>
 
   <section class="portfolio">
-    <div class="project-card" transition:fade={{ duration: 500 }}>
-      <div class="placeholder">Project 1</div>
-      <h2>Project Title</h2>
-      <p>Description of your design work</p>
-    </div>
-
-    <div class="project-card" transition:fade={{ duration: 500 }}>
-      <div class="placeholder">Project 2</div>
-      <h2>Project Title</h2>
-      <p>Description of your design work</p>
-    </div>
-
-    <div class="project-card" transition:fade={{ duration: 500 }}>
-      <div class="placeholder">Project 3</div>
-      <h2>Project Title</h2>
-      <p>Description of your design work</p>
-    </div>
+    {#each projects as project (project._id)}
+      <div class="project-card" transition:fade={{ duration: 500 }}>
+        {#if project.imageUrl}
+          <img src={project.imageUrl} alt={project.title} />
+        {/if}
+        <h2>{project.title}</h2>
+        <p>{project.description}</p>
+      </div>
+    {/each}
   </section>
 </div>
 
@@ -74,16 +69,10 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   }
 
-  .placeholder {
+  img {
     width: 100%;
     height: 250px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.2rem;
-    font-weight: 600;
+    object-fit: cover;
   }
 
   .project-card h2 {
