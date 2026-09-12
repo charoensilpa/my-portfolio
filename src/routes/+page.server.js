@@ -8,9 +8,11 @@ export async function load() {
       slug,
       description,
       image,
-      "imageUrl": image.asset->url
+      "imageUrl": image.asset->url,
+      category,
+      date { year, month }
     }
   `)
-  
+
   return { projects }
 }

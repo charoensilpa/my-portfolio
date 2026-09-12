@@ -1,0 +1,253 @@
+/* ------------------------------------------------------------------
+   Site-wide design tokens. Imported once in src/routes/+layout.svelte,
+   so every page and component can use these variables.
+   ------------------------------------------------------------------ */
+
+:root {
+	/* Palette */
+	--c-black: #000000;
+	--c-blue: #1340a1;
+	--c-red: #c32d2c;
+	--c-green: #00a670;
+	--c-cream: #eceae2;
+
+	/* Typefaces */
+	--font-display: 'Funnel Display', sans-serif;
+	--font-body: 'Inter', system-ui, sans-serif;
+	--font-mono: 'Inconsolata', ui-monospace, monospace;
+
+	/* ----------------------------------------------------------------
+	   SECTION RHYTHM
+	   Vertical air between the major homepage blocks. One value so the
+	   spacing stays even as sections are added; override per section
+	   only when there's a reason to.
+	   ---------------------------------------------------------------- */
+	--space-section: clamp(96px, 14vh, 180px);
+
+	/* ----------------------------------------------------------------
+	   CARD GEOMETRY — the one number everything else hangs off.
+	   Ratios below are measured from the hero reference artwork. Because
+	   the hero lockup and the intro row both derive from --card-w, the
+	   sticky card lands exactly on the second card in the row. Change
+	   --card-w alone and the whole composition rescales in step.
+
+	   Capped at 200px. With --card-gap at zero, six cards come to
+	   exactly 1200px — the row fits its container precisely and has no
+	   slack left. The constraint is 6 x card-w + 5 x gap <= 1200px;
+	   raising either number overflows immediately.
+	   ---------------------------------------------------------------- */
+	--card-w: min(200px, 12.86vw);
+	--card-h: calc(1.25 * var(--card-w)); /* portrait; 1.25 : 1 tall */
+
+	/* Currently zero — the intro cards touch edge to edge. Written as a
+	   multiple of --card-w rather than a plain 0 so it still reads as a
+	   ratio of the card width and can be reopened by changing one digit.
+	   Note the zero gap pushes slot 2 further from the row's centre than
+	   a gapped row would, which eats into the hero clearance below. */
+	--card-gap: calc(0 * var(--card-w));
+	--card-radius: calc(0.16 * var(--card-w));
+
+	/* For a centred row of N cards, slot 2's offset from the row's centre is
+	   (1.5 - 0.5N) x (card + gap). Row is 6 cards, so that's -1.5x. Shared
+	   here (rather than hard-coded separately in StickyFlipCard.svelte and
+	   the hero group-shift below) so both stay correct together if the card
+	   count ever changes again. */
+	--card-slot2-mult: 1.5;
+
+	/* ----------------------------------------------------------------
+	   HERO LOCKUP — the headline block is 3.824 card widths wide, and the
+	   card occupies its first two columns. Since the block is centred and
+	   the headline fills it, the whole composition centres on the page.
+	   ---------------------------------------------------------------- */
+	--hero-block: calc(3.824 * var(--card-w));
+	--hero-pad-top: 21vh;
+
+	/* Width of the word "charoen" in Funnel Display ExtraBold, in ems,
+	   measured from a real render. Dividing by it gives the size at which
+	   the word exactly fills the block — which is what keeps the headline
+	   optically centred. If the word ever falls short of the block or
+	   overshoots it, this is the number to correct. */
+	--hero-charoen-em: 3.96;
+	--hero-type: calc(var(--hero-block) / var(--hero-charoen-em));
+
+	/* Applied only to the "charoen silpa" headline itself. --hero-type
+	   stays untouched so --card-top and --hero-def-gap (below) don't need
+	   retuning just because the type got bigger. Note this deliberately
+	   breaks the "word exactly fills the block" fit described above —
+	   the rendered headline is 1.3x the block-fill reference size, so it
+	   runs wider than --hero-block. Check it doesn't clip against the
+	   viewport edge, especially on the mobile override further down. */
+	--hero-heading-scale: 1.3;
+	--hero-heading-size: calc(var(--hero-type) * var(--hero-heading-scale));
+
+	/* Centers the headline as a symmetric block, which also centers the
+	   [card + headline] group as a whole — see why below.
+
+	   "charoen" is left-aligned, so at scale S it extends S*hero-block wide
+	   starting from the box's left edge. To center it about 0, shift left
+	   by half of the extra width it gained: -(S-1)*hero-block / 2.
+
+	   Where the card fits into this: an early version computed the shift
+	   assuming the card's left edge was the group's leftmost point — it
+	   isn't. Once the headline is shifted left to center itself, its own
+	   left edge ends up further left than the card. Checked algebraically:
+	   with the gap at zero the card's left edge sits at -2.0 card-widths
+	   from centre, and "charoen"'s at -1.912 * hero-heading-scale — at the
+	   current scale of 1.3 that's -2.486, still past the card. Clearance
+	   is 0.49 card-widths, down from 0.72 before the scale and the gap
+	   both changed. Break-even is around a scale of 1.05; below that the
+	   card becomes leftmost and this formula needs a card term added back.
+	   RE-RUN THAT CHECK whenever --hero-heading-scale or --card-gap moves.
+	   Overridden to 0 on mobile, where the card leaves the sticky layer
+	   entirely and stacks below instead (see StickyFlipCard.svelte). */
+	--hero-group-shift: calc(-1 * var(--hero-block) * (var(--hero-heading-scale) - 1) / 2);
+
+	/* Scaled down to make room for the bigger headline while staying above
+	   common legibility floors. 12px is the floor — do not go below it. */
+	--hero-caption: clamp(12px, calc(0.075 * var(--card-w)), 13px);
+
+	/* Indents within the block. BOTH MEASURED FROM SCREENSHOTS at the
+	   current headline size, not derived — they do not self-correct.
+	   --hero-indent-1 (44%) clears "silpa" of the card's fixed position.
+	   --hero-indent-2 (77.5%) aligns the second definition's left edge
+	   with the left edge of the "p" in "silpa". If the headline size,
+	   block width or typeface changes, re-measure rather than assume. */
+	--hero-indent-1: 44%; /* "silpa" and the charoen definition */
+	--hero-indent-2: 77.5%; /* the silpa definition — aligned under "p" */
+	--hero-silpa-nudge: -10px; /* optical correction on "silpa" only */
+	--hero-def-gap: calc(0.16 * var(--hero-type)); /* headline to definitions */
+
+	/* Height of the sticky card in the hero. Anchored to the headline
+	   rather than the viewport, so it holds at any window shape.
+	   The 1.2 multiplier was measured from a screenshot so the card's top
+	   edge lines up with the top of the "l" in "silpa". Re-measure after
+	   any --hero-heading-scale change; 0.05 is roughly 6px. */
+	--card-top: calc(var(--hero-pad-top) + 1.2 * var(--hero-type));
+
+	/* ----------------------------------------------------------------
+	   INTRO CAROUSEL — six cards on a cylinder that turns as the page
+	   scrolls, rather than scrolling past. The intro copy sits below the
+	   ring inside the same pinned stage, so it stays on screen for the
+	   whole rotation. Read by IntroCards.svelte.
+	   ---------------------------------------------------------------- */
+
+	/* Shared with .sticky in StickyFlipCard.svelte, so the descending card
+	   and the ring foreshorten alike. */
+	--intro-perspective: 1400px;
+
+	/* Ring cards are their own size now, not --card-w. Driven by HEIGHT so
+	   the ring plus the copy underneath always fit one screen. This does
+	   NOT affect the section's own height — .intro's min-height only reads
+	   --intro-scroll, and .stage is a fixed 100svh — so it's safe to tune
+	   purely by eye. Smaller frees up more room for the intro copy below. */
+	--intro-card-h: min(280px, 30svh);
+	--intro-card-w: calc(var(--intro-card-h) / 1.25);
+
+	/* Air above the ring. Small enough to leave room for the copy below,
+	   large enough that the ring isn't jammed under the header. */
+	--intro-pad-top: 30svh;
+
+	/* ⚠️ The card count lives in TWO places: this angle and the CARDS array
+	   in IntroCards.svelte. --intro-step is 360 / count, so seven is
+	   ~51.43deg. Add or remove a card and this must change with it, or the
+	   ring will overlap itself or leave a wedge missing. */
+	--intro-step: calc(360deg / 7);
+
+	/* Radius of the cylinder. Cards touch exactly at (card-w / 2) / tan(180
+	   / count) — 0.87 x --intro-card-w for six. 1.6 opens that up so you can
+	   see between them. Raise for a wider, flatter ring; note the ring gets
+	   wider than the viewport well before it looks wrong, which is what
+	   overflow-x: clip on the stage is there for. */
+	--intro-ring-radius: calc(1.6 * var(--intro-card-w));
+
+	/* How far the ring turns across the whole section. 360deg brings every
+	   card round exactly once and returns to the start. */
+	--intro-turn: 360deg;
+
+	/* Scroll distance the page holds still for while the ring turns. This
+	   is the whole pace of the section — and it is added page height, so
+	   it's also the main cost. 200vh is roughly two flicks of a trackpad.
+	   ⚠️ --tail in +page.svelte is derived from this; they move together. */
+	--intro-scroll: 200vh;
+
+	/* How far a card lifts toward the viewer on hover. Kept small: the
+	   cards are already moving, so this only has to read as "live". */
+	--intro-hover-pop: 26px;
+
+	/* ----------------------------------------------------------------
+	   SELECTED WORK — full-bleed project cards (src/lib/components/
+	   SelectedWork.svelte). Radius reuses --card-radius directly rather
+	   than a second number, so the intro cards and these stay in sync
+	   if the card system is ever retuned (Standing Instruction 10).
+	   ---------------------------------------------------------------- */
+	--work-pad-y: clamp(16px, 2vw, 28px); /* top/bottom margin between card edge and text */
+	--work-pad-x: max(var(--card-radius), clamp(20px, 3vw, 48px)); /* never smaller than the corner radius, so text can't sit on the curve */
+	--work-sticky-top: 50vh; /* where the text pins as the card scrolls */
+
+	--work-date-size: clamp(0.8rem, 1.1vw, 1.1rem);
+	--work-category-size: var(--work-date-size); /* same field type as date — one number, not two */
+	--work-title-size: clamp(1.5rem, 3.2vw, 2.75rem);
+}
+
+@media (max-width: 900px) {
+	:root {
+		--card-w: 38vw;
+		--hero-block: 100%;
+		--hero-type: 15vw;
+		--hero-pad-top: 18vh;
+		--hero-indent-1: 0%;
+		--hero-indent-2: 0%;
+		--hero-silpa-nudge: 0px;
+		/* The desktop scale is 1.3, which on top of 15vw would be 19.5vw —
+		   still wide on a phone. Dialled back slightly here. NOTE: this is
+		   now very close to the desktop value, so this override may no
+		   longer be earning its place. Check on a real phone. */
+		--hero-heading-scale: 1.2;
+		--hero-group-shift: 0px;
+
+		--work-sticky-top: 45vh;
+
+		/* No pinning and no rotation on a phone — the ring becomes a plain
+		   wrapped grid, so the section needs no extra scroll height. */
+		--intro-scroll: 0px;
+		--intro-card-h: calc(1.25 * var(--card-w));
+		--intro-card-w: var(--card-w);
+	}
+}
+
+/* Padding and borders count inside an element's declared width, rather
+   than being added on top of it. Without this, `width: 100%` plus any
+   horizontal padding overflows its parent — which is what was pushing
+   the Selected Work cards past the viewport edge. */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--c-black);
+	color: var(--c-cream);
+	font-family: var(--font-body);
+}
+
+/* Striped placeholder, used anywhere an image hasn't been added yet */
+.stripe {
+	background: repeating-linear-gradient(135deg, #16150f 0 8px, #23211a 8px 16px);
+	display: grid;
+	place-items: center;
+	font-size: 12px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: rgba(236, 234, 226, 0.4);
+}
+
+/* Breaks an element out of any parent's width constraint to span the
+   true viewport edge to edge. Currently used by Selected Work; reach
+   for this instead of re-deriving the calc() if another section ever
+   needs the same thing. */
+.full-bleed {
+	width: 100vw;
+	margin-left: calc(50% - 50vw);
+}

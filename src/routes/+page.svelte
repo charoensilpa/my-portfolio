@@ -1,89 +1,55 @@
 <script>
-  import { fade } from 'svelte/transition'
-  
-  let { data } = $props()
-  const { projects } = data
+	import SiteHeader from '$lib/components/SiteHeader.svelte';
+	import Hero from '$lib/components/Hero.svelte';
+	import IntroCards from '$lib/components/IntroCards.svelte';
+	import Introduction from '$lib/components/Introduction.svelte';
+	import StickyFlipCard from '$lib/components/StickyFlipCard.svelte';
+	import SelectedWork from '$lib/components/SelectedWork.svelte';
+
+	let { data } = $props();
+
+	const projects = $derived(data.projects ?? []);
+
+	// TODO: this GIF still loads from your old Framer site.
+	// Save it into static/ and change this to '/portrait.gif' before launch.
+	const portrait = 'https://framerusercontent.com/images/4Mi9uTCEm4uQe4xhim1Lj2zN9c.gif';
 </script>
 
-<div class="container">
-  <header>
-    <h1>Amanda's Portfolio</h1>
-    <p>Graphic Design & Web Design</p>
-  </header>
+<SiteHeader />
 
-  <section class="portfolio">
-    {#each projects as project (project._id)}
-      <div class="project-card" transition:fade={{ duration: 500 }}>
-        {#if project.imageUrl}
-          <img src={project.imageUrl} alt={project.title} />
-        {/if}
-        <h2>{project.title}</h2>
-        <p>{project.description}</p>
-      </div>
-    {/each}
-  </section>
+<!--
+  The sticky card can travel through everything inside .scope and no further.
+
+  ⚠️ StickyFlipCard is listed BEFORE IntroCards on purpose. Both are
+  out-of-flow siblings, so document order decides which paints on top — and
+  the card has to pass BEHIND the ring's front faces as it sinks away. Its
+  position doesn't depend on where it sits in the markup.
+-->
+<div class="scope">
+	<Hero />
+	<StickyFlipCard src={portrait} alt="Portrait of Amanda" />
+	<!-- Introduction is passed IN so it renders inside the pinned stage, below
+	     the ring, and stays on screen for the whole rotation. It is still its
+	     own component and still owns its own copy. -->
+	<IntroCards>
+		<Introduction />
+	</IntroCards>
 </div>
 
+<SelectedWork {projects} />
+
 <style>
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
+	.scope {
+		/* How far short of the bottom of .scope the card stops.
 
-  header {
-    text-align: center;
-    margin-bottom: 4rem;
-  }
+		   ⚠️ This is no longer 0. IntroCards is now 100svh + --intro-scroll
+		   tall, and the card has to stop the moment the ring pins — not ride
+		   all the way down through the rotation. Working backwards from
+		   .scope's bottom, that point is the ring's travel, plus the pinned
+		   screen, less the card's own resting height and offset. Change
+		   --intro-scroll and this follows automatically. */
+		--tail: calc(100svh + var(--intro-scroll) - var(--card-top) - var(--card-h));
 
-  header h1 {
-    font-size: 3rem;
-    margin: 0;
-    color: #000;
-  }
-
-  header p {
-    font-size: 1.2rem;
-    color: #666;
-    margin: 0.5rem 0 0 0;
-  }
-
-  .portfolio {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 2rem;
-  }
-
-  .project-card {
-    border-radius: 12px;
-    overflow: hidden;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
-  }
-
-  .project-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  }
-
-  img {
-    width: 100%;
-    height: 250px;
-    object-fit: cover;
-  }
-
-  .project-card h2 {
-    font-size: 1.5rem;
-    margin: 1.5rem 1.5rem 0.5rem;
-    color: #000;
-  }
-
-  .project-card p {
-    font-size: 1rem;
-    color: #666;
-    margin: 0 1.5rem 1.5rem;
-  }
+		position: relative;
+	}
 </style>
