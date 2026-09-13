@@ -83,6 +83,82 @@ export default {
         ],
         layout: 'list'
       }
+    },
+    {
+      name: 'content',
+      title: 'Content Blocks',
+      type: 'array',
+      of: [
+        {
+          name: 'imageDescription',
+          title: 'Image Description',
+          type: 'object',
+          fields: [
+            {
+              name: 'images',
+              title: 'Images',
+              type: 'array',
+              of: [{ type: 'image', options: { hotspot: true } }],
+              validation: (Rule) => Rule.min(1).max(5),
+              options: { layout: 'grid' }
+            },
+            { name: 'title', title: 'Title', type: 'string' },
+            { name: 'description', title: 'Description', type: 'text' }
+          ],
+          preview: { select: { title: 'title', media: 'images.0' } }
+        },
+        {
+          name: 'slideshow',
+          title: 'Slideshow',
+          type: 'object',
+          fields: [
+            {
+              name: 'images',
+              title: 'Images',
+              type: 'array',
+              of: [{ type: 'image', options: { hotspot: true } }],
+              validation: (Rule) => Rule.max(30),
+              options: { layout: 'grid' }
+            }
+          ],
+          preview: {
+            select: { media: 'images.0', images: 'images' },
+            prepare({ media, images }) {
+              return { title: `Slideshow (${images?.length || 0} images)`, media };
+            }
+          }
+        },
+        {
+          name: 'bigImage',
+          title: 'Big Image',
+          type: 'object',
+          fields: [
+            {
+              name: 'image',
+              title: 'Image',
+              type: 'image',
+              options: { hotspot: true },
+              validation: (Rule) => Rule.required()
+            }
+          ],
+          preview: { select: { media: 'image' }, prepare: ({ media }) => ({ title: 'Big Image', media }) }
+        },
+        {
+          name: 'video',
+          title: 'Video',
+          type: 'object',
+          fields: [
+            {
+              name: 'file',
+              title: 'Video file',
+              type: 'file',
+              options: { accept: 'video/*' },
+              validation: (Rule) => Rule.required()
+            }
+          ],
+          preview: { prepare: () => ({ title: 'Video' }) }
+        }
+      ]
     }
   ]
 }
