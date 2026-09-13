@@ -1,16 +1,10 @@
 <script>
-	let { projects = [] } = $props();
+	// Studio stores the value (e.g. "uxui"); the label is presentation. The map
+	// used to be written out here, but the gallery needs the same one, so it
+	// now lives in $lib/categories.js and both read it from there.
+	import { CATEGORY_LABELS } from '$lib/categories.js';
 
-	// Studio stores the value (e.g. "uxui"); the label is presentation, so it lives here.
-	const CATEGORY_LABELS = {
-		graphics: 'Graphic Design',
-		branding: 'Branding',
-		uxui: 'UX & UI',
-		'3d': '3D Design',
-		animation: 'Animation',
-		art: 'Art',
-		photography: 'Photography'
-	};
+	let { projects = [] } = $props();
 
 	const MONTH_LABELS = {
 		'01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr',

@@ -118,13 +118,19 @@
 	.sticky {
 		position: sticky;
 		top: var(--card-top);
-		width: var(--card-w);
-		height: var(--card-h);
+		/* Own size now — --flip-card-w/-h in global.css, decoupled from the
+		   hero's --card-w/--card-h. Change --flip-card-w there to resize
+		   just this card. */
+		width: var(--flip-card-w);
+		height: var(--flip-card-h);
 		/* Shared with the ring's stage, so this card and the faces it sinks
 		   into foreshorten identically. */
 		perspective: var(--intro-perspective);
-		/* For a centred row of N cards, slot 2's offset from the row's centre
-		   is (1.5 - 0.5N) x (card + gap) — for our 6-card row that's -1.5x.
+		/* Position only, deliberately still on --card-w (NOT --flip-card-w):
+		   this places the card at "slot 2" of the hero's virtual row, which
+		   is a hero-layout concept, not this card's own size. For a centred
+		   row of N cards, slot 2's offset from the row's centre is
+		   (1.5 - 0.5N) x (card + gap) — for our 6-card row that's -1.5x.
 		   --card-slot2-mult lives in global.css so Hero.svelte's group-shift
 		   calc and the ring's --intro-ring-shift use the same number. */
 		transform: translateX(calc(-1 * var(--card-slot2-mult) * (var(--card-w) + var(--card-gap))));
@@ -171,7 +177,7 @@
 	}
 
 	.back {
-		transform: rotateY(120deg);
+		transform: rotateY(160deg);
 	}
 
 	@media (max-width: 900px) {

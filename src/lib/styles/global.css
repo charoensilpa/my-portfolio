@@ -25,6 +25,28 @@
 	--space-section: clamp(96px, 14vh, 180px);
 
 	/* ----------------------------------------------------------------
+	   SITE HEADER — read by SiteHeader.svelte, and by the gallery, whose
+	   section headings pin inside the bar.
+
+	   --nav-h is the bar's rendered height, measured rather than derived:
+	   18px of padding top and bottom plus the wordmark's line box. ⚠️ If
+	   .bar's padding or the wordmark's size changes in SiteHeader.svelte,
+	   re-measure this. Nothing enforces the relationship.
+
+	   --nav-fade is how far the blurred band continues past the bar while
+	   easing away, so the bar dissolves into the page rather than ending
+	   on a hard line. Raise it for a longer, gentler transition.
+
+	   ⚠️ There is no darkening layer any more. The bar was tinted black for
+	   most of this project's life, and removing it means the nav links now
+	   sit on nothing but blurred page. Over a pale image that may not be
+	   legible — check the hero and the gallery's brighter photographs
+	   before assuming it's fine everywhere.
+	   ---------------------------------------------------------------- */
+	--nav-h: 64px;
+	--nav-fade: clamp(40px, 7vh, 96px);
+
+	/* ----------------------------------------------------------------
 	   CARD GEOMETRY — the one number everything else hangs off.
 	   Ratios below are measured from the hero reference artwork. Because
 	   the hero lockup and the intro row both derive from --card-w, the
@@ -45,7 +67,7 @@
 	   Note the zero gap pushes slot 2 further from the row's centre than
 	   a gapped row would, which eats into the hero clearance below. */
 	--card-gap: calc(0 * var(--card-w));
-	--card-radius: calc(0.16 * var(--card-w));
+	--card-radius: calc(0.02 * var(--card-w));
 
 	/* For a centred row of N cards, slot 2's offset from the row's centre is
 	   (1.5 - 0.5N) x (card + gap). Row is 6 cards, so that's -1.5x. Shared
@@ -53,6 +75,28 @@
 	   the hero group-shift below) so both stay correct together if the card
 	   count ever changes again. */
 	--card-slot2-mult: 1.5;
+
+	/* ----------------------------------------------------------------
+	   FLIP CARD SIZE — deliberately its OWN size, not --card-w.
+	   Until now the flip card's width/height in StickyFlipCard.svelte
+	   read --card-w/--card-h directly, so resizing the flip card meant
+	   rescaling the whole hero lockup (headline, indents, everything
+	   above). This decouples the two: change --flip-card-w to resize
+	   ONLY the flip card. --card-w and the hero are untouched.
+
+	   Position is a separate concern and is NOT decoupled — it doesn't
+	   need to be. StickyFlipCard.svelte's horizontal offset (via
+	   --card-slot2-mult) and --card-top below still key off --card-w,
+	   because those describe WHERE the card sits in the hero's virtual
+	   row, not how big it's drawn. So the card shrinks in place rather
+	   than drifting off its anchor.
+
+	   Currently 0.75x the previous size (0.75 x the old --card-w/-h).
+	   Same 1.25:1 portrait ratio as before, preserved on purpose so the
+	   card's proportions don't change, only its scale.
+	   ---------------------------------------------------------------- */
+	--flip-card-w: min(150px, 9.645vw);
+	--flip-card-h: calc(1.25 * var(--flip-card-w));
 
 	/* ----------------------------------------------------------------
 	   HERO LOCKUP — the headline block is 3.824 card widths wide, and the
@@ -125,7 +169,7 @@
 	--card-top: calc(var(--hero-pad-top) + 1.2 * var(--hero-type));
 
 	/* ----------------------------------------------------------------
-	   INTRO CAROUSEL — six cards on a cylinder that turns as the page
+	   INTRO CAROUSEL — seven cards on a cylinder that turns as the page
 	   scrolls, rather than scrolling past. The intro copy sits below the
 	   ring inside the same pinned stage, so it stays on screen for the
 	   whole rotation. Read by IntroCards.svelte.
@@ -154,7 +198,7 @@
 	--intro-step: calc(360deg / 7);
 
 	/* Radius of the cylinder. Cards touch exactly at (card-w / 2) / tan(180
-	   / count) — 0.87 x --intro-card-w for six. 1.6 opens that up so you can
+	   / count) — 1.04 x --intro-card-w for seven. 1.6 opens that up so you can
 	   see between them. Raise for a wider, flatter ring; note the ring gets
 	   wider than the viewport well before it looks wrong, which is what
 	   overflow-x: clip on the stage is there for. */
@@ -187,6 +231,104 @@
 	--work-date-size: clamp(0.8rem, 1.1vw, 1.1rem);
 	--work-category-size: var(--work-date-size); /* same field type as date — one number, not two */
 	--work-title-size: clamp(1.5rem, 3.2vw, 2.75rem);
+
+	/* ----------------------------------------------------------------
+	   GALLERY — /gallery, one section per category (GallerySection.svelte).
+
+	   Each section is at least one full screen tall and grows past that
+	   as cards are added; that min-height is mechanical and lives in the
+	   component, not here. The per-category colours aren't here either —
+	   twenty-one one-off tokens would be worse than one table, so they
+	   sit in src/lib/categories.js as var() references back to the
+	   palette at the top of this file.
+
+	   ⚠️ There is deliberately no max-width cap on the grid any more. It
+	   used to be --gallery-max-w (1200px, matching the nav bar), but the
+	   grid now runs to the section's full width so a wide enough row of
+	   cards can span edge to edge, with --gallery-pad-x (tied to
+	   --gallery-card-gap, below) as the only air at either side.
+
+	   Card corners are NOT a gallery token: the component reads
+	   --card-radius directly, the same way Selected Work does, so every
+	   card on the site keeps the same corner.
+	   ---------------------------------------------------------------- */
+	/* Tied directly to --gallery-card-gap rather than its own clamp: the
+	   grid is no longer capped by --gallery-max-w (removed — the grid now
+	   runs edge to edge on GallerySection.svelte's .grid), so the only
+	   thing controlling how much air sits at the screen edge is this
+	   padding, and it should read as "one more gap" rather than a
+	   different rhythm. Change --gallery-card-gap and this follows. */
+	--gallery-pad-x: var(--gallery-card-gap);
+	--gallery-pad-y: clamp(96px, 16vh, 192px); /* air above the heading, below the grid */
+
+	/* 1.5x the original Heading-7-territory size. Still pinned to the top
+	   of the screen for the whole section, so it's bigger than before but
+	   still meant to read as a label rather than a title. */
+	--gallery-heading-size: clamp(1.6875rem, 3.6vw, 2.8125rem);
+
+	/* Slightly tighter than before (was clamp(32px, 6vh, 72px)) — the
+	   bigger heading above needs a touch less air beneath it to feel
+	   balanced. .section's own min-height (in GallerySection.svelte) is
+	   unaffected by this number, so shrinking it never risks the
+	   one-screen-minimum guarantee. */
+	--gallery-heading-gap: clamp(36px, 6.75vh, 84px);
+
+	/* THE STICKY HEADING BAR. Each section's heading pins inside the nav
+	   bar and rides down the page until its own section runs out, at which
+	   point the next section's heading takes over.
+
+	   The heading has NO background and NO blur of its own — it paints over
+	   the nav bar, so the bar's existing tint and blur are what sit behind
+	   it. ⚠️ Do not add a backdrop-filter to the heading. It was tried at
+	   length and does nothing in Chrome, whatever the arrangement; only the
+	   fixed <header> in SiteHeader.svelte blurs reliably.
+
+	   --gallery-heading-pad is used on mobile only, where the heading drops
+	   below the bar rather than sharing it with the nav links. */
+	--gallery-heading-pad: clamp(20px, 3vh, 40px);
+
+	/* Columns are this exact width, not stretchy: a category with two
+	   projects would otherwise blow them up to half the screen each. The
+	   grid fits as many columns as the row allows and centres them, so the
+	   layout reflows on its own as projects are published. */
+	--gallery-card-w: clamp(90px, 9vw, 130px);
+
+	/* Tighter than before (was clamp(16px, 2vw, 32px)) — cards read as one
+	   denser cluster rather than a loosely spaced row. This value also
+	   drives --gallery-pad-x above, so the gutter at the screen edge stays
+	   visually identical to the gap between any two cards. */
+	--gallery-card-gap: clamp(50px, 7vw, 100px);
+
+	/* Cards are NOT a fixed shape any more. Each one takes the proportions
+	   of its own uploaded image, so a row's height is set by its tallest
+	   card and the shorter ones are centred against it.
+
+	   --gallery-card-aspect  fallback shape for a project with no image
+	                          yet, and for the striped placeholders. Written
+	                          as width ÷ height, so below 1 is portrait.
+
+	   The cut-off at which a landscape image takes two columns instead of
+	   one is NOT here — it's WIDE_ASPECT in GallerySection.svelte, because
+	   it's a branch in the markup rather than a number CSS can read. */
+	--gallery-card-aspect: 0.8;
+
+	/* Height floor and ceiling. Without these a 2:3 portrait and a
+	   panoramic photo end up wildly different heights and the rows look
+	   unruly. Each card still takes its own image's proportions BETWEEN
+	   these two numbers; past them it's held at the limit and the picture
+	   is cropped by object-fit instead.
+
+	   Written as multiples of the card width so they rescale with
+	   --gallery-card-w rather than needing retuning alongside it. Bring the
+	   two closer together for a more uniform grid, further apart for more
+	   variation; equal values would make every card identical. */
+	--gallery-card-h-min: calc(0.85 * var(--gallery-card-w));
+	--gallery-card-h-max: calc(1.35 * var(--gallery-card-w));
+
+	--gallery-perspective: 900px; /* shallower than the ring's 1400px — the cards are small and viewed head-on */
+	--gallery-title-size: clamp(1rem, 1.6vw, 1.5rem); /* project title on the flipped face */
+	--gallery-flip: 480ms; /* inside the 200-600ms animation brief */
+
 }
 
 @media (max-width: 900px) {
@@ -207,11 +349,16 @@
 
 		--work-sticky-top: 45vh;
 
+		--nav-h: 56px; /* .bar's padding drops to 14px on this breakpoint */
+
 		/* No pinning and no rotation on a phone — the ring becomes a plain
 		   wrapped grid, so the section needs no extra scroll height. */
 		--intro-scroll: 0px;
 		--intro-card-h: calc(1.25 * var(--card-w));
 		--intro-card-w: var(--card-w);
+
+		/* Two cards per row on a phone rather than one very wide one. */
+		--gallery-card-w: 42vw;
 	}
 }
 

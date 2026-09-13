@@ -1,5 +1,6 @@
 <script>
 	import { scrollProgress } from '$lib/actions/scrollProgress.js';
+	import { CATEGORIES } from '$lib/categories.js';
 
 	// The intro copy is rendered inside the pinned stage, below the ring, so it
 	// stays on screen for the whole rotation. It arrives as a snippet rather
@@ -8,20 +9,23 @@
 	// nothing else" in the project notes.
 	let { children } = $props();
 
-	// ⚠️ Six cards, matching --intro-step (360 / 6 = 60deg) in global.css.
-	// Change the length of this array and that token must change with it.
-	// The hrefs point at routes that DON'T EXIST YET — they will 404 until the
-	// category and project pages are built. Swap `label` for a real image once
-	// there's artwork for each.
-	const CARDS = [
-		{ label: 'graphic design', href: '/category/graphics' },
-		{ label: 'branding', href: '/category/branding' },
-		{ label: 'ux & ui', href: '/category/uxui' },
-		{ label: '3d', href: '/category/3d' },
-		{ label: 'animation', href: '/category/animation' },
-		{ label: 'art', href: '/category/art' },
-		{ label: 'photography', href: '/category/photography' }
-	];
+	// One card per category, in the order the table lists them. The labels and
+	// the order used to be written out again here; they now come from
+	// $lib/categories.js so the ring can't drift out of step with the gallery.
+	//
+	// ⚠️ --intro-step in global.css is 360deg divided by the number of
+	// categories, and it is NOT derived automatically. Add a category to
+	// categories.js and that token must be changed by hand in the same edit,
+	// or the ring will overlap itself or leave an empty wedge.
+	//
+	// Each card jumps to that category's section on the gallery page. Those
+	// anchors are the stored Sanity values, so they stay correct as long as
+	// the schema and categories.js agree.
+	const CARDS = CATEGORIES.map((category) => ({
+		label: category.label,
+		href: `/gallery#${category.value}`,
+		key: category.value
+	}));
 </script>
 
 <!--
@@ -36,7 +40,7 @@
 <section id="intro" class="intro" style="--r: 0;" use:scrollProgress={{ property: '--r' }}>
 	<div class="stage">
 		<div class="ring">
-			{#each CARDS as card, i (card.href)}
+			{#each CARDS as card, i (card.key)}
 				<a class="card" href={card.href} style="--i: {i};">
 					<span class="stripe">{card.label}</span>
 				</a>
